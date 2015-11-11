@@ -20,48 +20,94 @@ class Supermarket {
 	// is accessible to all methods in this class
 	// --------------------------------------------
 
-
 	private int memo[][];
 	private int INF = 100000000;
-	private int check;
+	private int V;
+	private int p[][];
+	private int temp[][];
 
 	public Supermarket() {
 
 	}
 
-	int Query() {
-		int ans = 0;
-		check = 0;
+	void PreProcess() {
+		V = N + 1;
 
-		memo = new int[N + 1][(int) Math.pow(2, N + 1)];
-		for (int i = 0; i <= N; i++) {
-			Arrays.fill(memo[i], -1);
+		for (int k = 0; k < V; k++) {
+			for (int i = 0; i < V; i++) {
+				for (int j = 0; j < V; j++) {
+					if (T[i][k] + T[k][j] < T[i][j]) {
+						T[i][j] = T[i][k] + T[k][j];
+					}
+				}
+			}
+		}
+		
+		temp = new int[K+1][K+1];
+		
+		for (int i=0; i<K; i++) {
+			for (int j=0; j<K; j++) {
+				temp[i+1][j+1] = T[shoppingList[i]][shoppingList[j]];
+			}
+		}
+		
+		for (int i=0; i<K; i++) {
+			temp[0][i+1] =  T[0][shoppingList[i]];
+			temp[i+1][0] =  temp[0][i+1];
 		}
 
-		ans = DP_TSP(0, 1);
+	}
+
+	int Query() {
+		int ans = 0;
+
+		memo = new int[K+1][(int) Math.pow(2, K + 1)];
+		for (int i = 0; i <= K; i++) {
+			Arrays.fill(memo[i], -1);
+		} 
+		
+		ans = DP_TSP(0,1);
 
 		return ans;
 	}
 
-	int DP_TSP(int u, int m) {		
-		
-		if (m == (1<<N+1) -1) {
-			return T[u][0];
+	int DP_TSP(int u, int m) {
+
+		if (m == (1 << K + 1) - 1) {
+			return temp[u][0];
 		}
-		
+
 		if (memo[u][m] != -1) {
 			return memo[u][m];
 		}
 
 		memo[u][m] = INF;
-		for (int i = 0; i < N + 1; i++) {
-			if (i != u && ((m & 1<<i)==0)) {
-				int D = T[u][i] + DP_TSP(i, m | (1<<i));
+		for (int i = 0; i < K+1; i++) {
+			if (i != u && ((m & 1 << i) == 0)) {				
+				int D = temp[u][i] + DP_TSP(i, m | (1 << i));
 				memo[u][m] = Math.min(memo[u][m], D);
 			}
 
 		}
 		return memo[u][m];
+	}
+
+	void printMatrix() {
+		for (int i = 0; i < V; i++) {
+			for (int j = 0; j < V; j++) {
+				System.out.print(T[i][j] + " ");
+			}
+			System.out.println();
+		}
+	}
+	
+	void print() {
+		for (int i = 0; i < K+1; i++) {
+			for (int j = 0; j < K+1; j++) {
+				System.out.print(temp[i][j] + " ");
+			}
+			System.out.println();
+		}
 	}
 
 	void run() throws Exception {
@@ -84,6 +130,8 @@ class Supermarket {
 			for (int i = 0; i <= N; i++)
 				for (int j = 0; j <= N; j++)
 					T[i][j] = sc.nextInt();
+
+			PreProcess();
 
 			pw.println(Query());
 		}
